@@ -37,6 +37,9 @@ void displayQueue(Node* front);
 void toPostfix(Node* top, char exp[], Node* &front, Node* &tail);
 void enqueue(Node* &front, Node* &tail, char data);
 char dequeue(Node* &front, Node* &tail);
+void infix(tNode* tree);
+void prefix(tNode* tree);
+void postfix(tNode* tree);
 
 // main function
 int main() {
@@ -44,18 +47,18 @@ int main() {
   // input loop
   bool keep_going = true;
   while (keep_going) {
-
+    
     // key pointers
     Node* top = NULL;
     Node* front = NULL;
     Node* tail = NULL;
     
     // take input (expression)
-    cout << "enter an expression" << endl;
+    cout << "Enter an expression: ";
     char exp[100];
     cin.get(exp,100);
     cin.get();
-
+    
     // remove spaces
     int count = 0;
     for (int i = 0; i < strlen(exp); i++) {
@@ -64,13 +67,11 @@ int main() {
       }
     }
     exp[count] = '\0';
-
+    
     // translate to postfix notation
     toPostfix(top,exp,front,tail);
-
+    
     // create expression tree
-
-    cout << "front's data: " << endl;
     while (front != NULL) {
       if (front->data >= 48 && front->data <= 57) {
         // operand
@@ -87,21 +88,39 @@ int main() {
       }
       front = front->next;
     }
-    cout << "top's data: " << top->data << endl;
-    cout << "top's left: " << top->tnode->left->data << endl;
-    cout << "top's right: " << top->tnode->right->data << endl;
-    cout << "top's right's right: " << top->tnode->right->right->data << endl;
-    cout << "top's left's left: " << top->tnode->left->left->data << endl;
-    display(top);
+    cout << "Successfully created expression tree." << endl;    
+
+    // choose between infix, prefix, and postfix
+    cout << "Do you want to output infix, prefix, or postfix? ";
+    char choice[10];
+    cin.get(choice,10);
+    cin.get();
+
+    // compare the input to each possible notation
+    // execute functions accordingly
+    cout << "Output: ";
+    if (strcmp(choice,"infix") == 0) {
+      infix(top->tnode);
+    } else if (strcmp(choice,"prefix") == 0) {
+      prefix(top->tnode);
+    } else if (strcmp(choice,"postfix") == 0) {
+      postfix(top->tnode);
+    } else {
+      cout << "You didn't choose one of the options." << endl;
+    }
+    cout << endl;
 
     // ask user whether to keep going
-    cout << "do you want to keep going? ";
-    char input[5] = "yes";
+    cout << "Do you want to keep going? ";
+    char input[5];
     cin.get(input,5);
     cin.get();
+    // if input starts with an n, end program
     if (input[0] == 'n') {
       keep_going = false;
-    }
+    } else {
+      cout << endl;
+    }  
   }
   return 0;
 }
@@ -120,10 +139,7 @@ void toPostfix(Node* top, char exp[], Node* &front, Node* &tail) {
   for (int i = 0; i < length; i++) {
     // if the input is 0 - 9
     if ((exp[i] >= 48 && exp[i] <= 57) || (exp[i] >= 97 && exp[i] <= 122)) {
-
-      //output[count] = exp[i];
-      //count++;
-
+      // add to output queue
       enqueue(front, tail, exp[i]);
 
     } else if (exp[i] == '-' || exp[i] == '+' || exp[i] == '*' || exp[i] == '/' || exp[i] == '^') {
@@ -151,12 +167,10 @@ void toPostfix(Node* top, char exp[], Node* &front, Node* &tail) {
 
         // compare precedence between the current char and the top of the stack 
 
-        //if the prec of top is greater or equal to current char, pop off stack
+        // if the prec of top (of stack) is greater or equal to
+	// current char being evaluated, pop off stack
         while (top != NULL && top->prec >= prec && top->data != '(') {
-
-          //output[count] = peek(top);
-          //count++;
-
+	  
           enqueue(front, tail, peek(top));
           pop(top);
         }
@@ -166,17 +180,15 @@ void toPostfix(Node* top, char exp[], Node* &front, Node* &tail) {
       }
     } else if (exp[i] == '(') {
 
-      // if the current char is a left parent. then push to stack
+      // if the current char is a left parentheses then push to stack
       push(top, exp[i], NULL);
 
     } else if (exp[i] == ')') {
-      // if current char is right par., pop stack until it finds a left one
+      // if current char is right parentheses, pop stack until it finds a left one
 
       while (top->data != '(') {
 
-        //output[count] = peek(top);
-        //count++;
-
+	// add to output queue, pop from stack
         enqueue(front, tail, peek(top));
         pop(top);
       }
@@ -191,19 +203,12 @@ void toPostfix(Node* top, char exp[], Node* &front, Node* &tail) {
     }
   }
 
+  // push anything else still on the stack onto the output queue
   while (!isEmpty(top)) {
-
-    //output[count] = peek(top);
-    //count++;
 
     enqueue(front, tail, peek(top));
     pop(top);
   }
-
-  //output[count] = '\0';
-  //cout << output << endl;
-
-  displayQueue(front);
 }
 
 // push data onto the stack
@@ -212,6 +217,8 @@ void push(Node* &top, char data, tNode* tnode) {
   // create node temp and allocate it to memory
   Node* temp;
   temp = new Node;
+
+  // case if you're adding a normal char to stack
   if (tnode == NULL) {
     // assign precedence based on data
     if (data == '-' || data == '+') {
@@ -227,9 +234,11 @@ void push(Node* &top, char data, tNode* tnode) {
     temp->next = top;
     // make temp the top of stack
     top = temp;
-    
+
+    // case if you're adding a tree node to stack  
   } else {
     // if you're pushing a tree node
+    // init data and pointer onto stack
     // push pointer to stack
     temp->data = data;
     temp->tnode = tnode;
@@ -256,6 +265,7 @@ void pop(Node* &top) {
   // destroy connection between 
   temp->next = NULL;
 
+  // free temp from memory
   delete temp;
 }
 
@@ -281,6 +291,7 @@ bool isEmpty(Node* top) {
 }
 
 // display the entire stack to the console
+// primarily used for debugging, not used in main sequence
 void display(Node* top) {
 
   // check for stack underflow
@@ -293,7 +304,7 @@ void display(Node* top) {
     // go through stack and print each node's data
     while (temp != NULL) {
       // print node data
-      //cout << temp->data << " ";
+      //cout << temp->data << endl;
 
       // if it has a tnode, print it
       if (temp->tnode != NULL) {
@@ -309,6 +320,7 @@ void display(Node* top) {
 }
 
 // display the entire queue to the console
+// used for debuggig, not used in main sequence
 void displayQueue(Node* front) {
 
   // check for stack underflow
@@ -330,7 +342,7 @@ void displayQueue(Node* front) {
   }
 }
 
-// add data to a queue
+// add data to back of the queue
 void enqueue(Node* &front, Node* &tail, char data) {
 
   if (tail == NULL) {
@@ -350,18 +362,72 @@ void enqueue(Node* &front, Node* &tail, char data) {
   }
 }
 
-// dequeue data from queue
+// dequeue data from front of queue
 char dequeue(Node* &front, Node* &tail) {
 
-  
+  // make a new temp node set to front
+  // make front it's next
   Node* temp = front;
   front = front->next;
 
+  // if front is then null, there is nothing in the list
+  // make tail null
   if (front == NULL) {
     tail = NULL;
   }
 
+  // delete temp and return it's data
   char data = temp->data;
   delete temp;
   return data;
+}
+
+// prints an expression in infix notation given a binary expression tree
+void infix(tNode* tree) {
+  // first checks if tree is empty
+  if (tree != NULL) {
+    if (tree->data == '-' || tree->data == '+' || tree->data == '*' || tree->data == '/' || tree->data == '^') {
+      // if tree node data is an operator, you can then
+      // determine that it is a subexpression and print a left parentheses
+      cout << '(';
+    }
+    // go down left subtree
+    infix(tree->left);
+    // output data
+    cout << tree->data;
+    // go down right subtree
+    infix(tree->right);
+    
+    if (tree->data == '-' || tree->data == '+' || tree->data == '*' || tree->data == '/' || tree->data == '^') {
+      cout << ')';
+    }
+  }
+}
+
+// print expression tree as prefix notation
+void prefix(tNode* tree) {
+
+  // checks if tree is empty
+  if (tree != NULL) {
+    // output data first
+    cout << tree->data;
+    // then go down to the left subtree recursively
+    prefix(tree->left);
+    // then go down to right subtree
+    prefix(tree->right);
+  }
+}
+
+// print expression tree as postfix notation
+void postfix(tNode* tree) {
+
+  // checks if tree is empty
+  if (tree != NULL) {
+    // go down left subtree
+    postfix(tree->left);
+    // then right subtree
+    postfix(tree->right);
+    // then output data
+    cout << tree->data;
+  }
 }
