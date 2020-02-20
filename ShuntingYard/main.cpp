@@ -162,20 +162,22 @@ void toPostfix(Node* top, char exp[], Node* &front, Node* &tail) {
         } else if (exp[i] == '/' || exp[i] == '*') {
           prec = 2;
         } else if (exp[i] == '^') {
-          prec = 3;
-        }
+	  prec = 3;
+	}
 
-        // compare precedence between the current char and the top of the stack 
+        // compare precedence between the current char and the top of the stack
 
+	
         // if the prec of top (of stack) is greater or equal to
 	// current char being evaluated, pop off stack
-        while (top != NULL && top->prec >= prec && top->data != '(') {
-	  
-          enqueue(front, tail, peek(top));
-          pop(top);
-        }
-
-        // otherwise, push to top
+	// adds edge case for powers, if it's a power, push to stack without popping
+	if (prec < 3) {
+	  while (top != NULL && top->prec >= prec && top->data != '(') {
+	    enqueue(front, tail, peek(top));
+	    pop(top);
+	  }
+	}
+        // otherwise, push to stack
         push(top, exp[i], NULL);
       }
     } else if (exp[i] == '(') {
