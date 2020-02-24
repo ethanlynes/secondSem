@@ -18,7 +18,7 @@ int main() {
 
   char numList[] = {"389 983 78 918 378 289 12 7 83"};
 
-  int heap[101];
+  int heap[201];
 
   
   char* tok = strtok(numList, " ");
@@ -52,4 +52,9 @@ int main() {
   }
   
   return 0;
+}
+
+void heapify(int &arr[101], int i, int &count) {
+
+  
 }
